@@ -15,5 +15,4 @@ jobs:
         id: test
         with:
           dry_run: true
-        env:
           GITHUB_EVENT_PATH: "testdata/merge_event_with_labels.json"

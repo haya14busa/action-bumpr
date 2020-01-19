@@ -6,6 +6,8 @@ inputs:
     description: "Default bump level if labels are not attached [major,minor,patch]. Do nothing if it's empty"
   dry_run:
     description: "Do not actually tag next version if it's true"
+  INPUT_GITHUB_EVENT_PATH:
+    description: "For testing only. Overwrite GITHUB_EVENT_PATH"
 outputs:
   next_version:
     description: "next version"
