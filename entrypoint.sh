@@ -5,14 +5,14 @@ if [ -n "${GITHUB_WORKSPACE}" ]; then
   cd "${GITHUB_WORKSPACE}" || exit
 fi
 
-MERGED=$(cat "${GITHUB_EVENT_PATH}" | jq -r .pull_request.merged)
+MERGED=$(jq -r .pull_request.merged < "${GITHUB_EVENT_PATH}")
 
 if [ "${MERGED}" != "true" ]; then
   echo "It's not running on pull request merged event."
   exit 1
 fi
 
-LABELS=$(cat "${GITHUB_EVENT_PATH}" | jq -r '.pull_request.labels | .[].name')
+LABELS=$(jq -r '.pull_request.labels | .[].name' < "${GITHUB_EVENT_PATH}")
 BUMP_LEVEL="${INPUT_DEFAULT_BUMP_LEVEL}"
 if echo "${LABELS}" | grep "bump:major" ; then
   BUMP_LEVEL="major"
@@ -36,8 +36,8 @@ if [ -z "${NEXT_VERSION}" ]; then
 fi
 echo "::set-output name=next_version::${NEXT_VERSION}"
 
-PR_NUMBER=$(cat "${GITHUB_EVENT_PATH}" | jq -r .pull_request.number)
-PR_TITLE=$(cat "${GITHUB_EVENT_PATH}" | jq -r .pull_request.title)
+PR_NUMBER=$(jq -r .pull_request.number < "${GITHUB_EVENT_PATH}")
+PR_TITLE=$(jq -r .pull_request.title < "${GITHUB_EVENT_PATH}")
 TAG_MESSAGE="${NEXT_VERSION}\nMerged #${PR_NUMBER}: ${PR_TITLE}"
 
 if [ "${INPUT_DRY_RUN}" = "true" ]; then
