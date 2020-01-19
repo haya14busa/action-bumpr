@@ -60,5 +60,5 @@ git config user.name "${GITHUB_ACTOR}"
 git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
 
 # Push the next tag.
-git tag -a "${NEXT_VERSION}" -m "${NEXT_VERSION}\nPR #${PR_NUMBER} - ${PR_TITLE}"
+git tag -a "${NEXT_VERSION}" -m "${NEXT_VERSION}: PR #${PR_NUMBER} - ${PR_TITLE}"
 git push origin "${NEXT_VERSION}"
