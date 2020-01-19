@@ -54,5 +54,11 @@ if [ "${INPUT_DRY_RUN}" = "true" ]; then
   echo "TAG_MESSAGE=${TAG_MESSAGE}"
   exit
 fi
+
+# Set up Git.
+git config user.name "${GITHUB_ACTOR}"
+git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+
+# Push the next tag.
 git tag -a "${NEXT_VERSION}" -m "${NEXT_VERSION}\nPR #${PR_NUMBER} - ${PR_TITLE}"
 git push origin "${NEXT_VERSION}"
