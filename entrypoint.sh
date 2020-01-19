@@ -33,6 +33,7 @@ if [ -z "${BUMP_LEVEL}" ]; then
 fi
 echo "Bump ${BUMP_LEVEL} version"
 
+git fetch --tags # Fetch existing tags before bump.
 NEXT_VERSION=$(bump ${BUMP_LEVEL})
 
 if [ -z "${NEXT_VERSION}" ]; then
