@@ -11,6 +11,8 @@ inputs:
 outputs:
   next_version:
     description: "next version"
+  skip:
+    description: "True if release is skipped. e.g. No labels attached to PR."
 runs:
   using: 'docker'
   image: 'Dockerfile'

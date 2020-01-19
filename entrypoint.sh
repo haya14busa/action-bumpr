@@ -21,14 +21,15 @@ LABELS=$(jq -r '.pull_request.labels | .[].name' < "${EVENT_PATH}")
 BUMP_LEVEL="${INPUT_DEFAULT_BUMP_LEVEL}"
 if echo "${LABELS}" | grep "bump:major" ; then
   BUMP_LEVEL="major"
-elif echo "${LABELS}" | grep "bump:minor" ; then 
+elif echo "${LABELS}" | grep "bump:minor" ; then
   BUMP_LEVEL="minor"
-elif echo "${LABELS}" | grep "bump:patch" ; then 
+elif echo "${LABELS}" | grep "bump:patch" ; then
   BUMP_LEVEL="patch"
 fi
 
 if [ -z "${BUMP_LEVEL}" ]; then
   echo "Labels for bump not found. Do nothing."
+  echo "::set-output name=skip::true"
   exit
 fi
 echo "Bump ${BUMP_LEVEL} version"
@@ -38,7 +39,7 @@ NEXT_VERSION=$(bump ${BUMP_LEVEL})
 
 if [ -z "${NEXT_VERSION}" ]; then
   echo "Cannot find next version."
-  exit
+  exit 1
 fi
 echo "::set-output name=next_version::${NEXT_VERSION}"
 
