@@ -23,6 +23,7 @@ jobs:
       # Bump version on merging Pull Requests with specific labels. (bump:major,bump:minor,bump:patch)
       - id: bumpr
         if: github.event.pull_request.merged
+        name: haya14busa/action-bumpr
         uses: ./
 
       # Update corresponding major and minor tag. e.g. Update v1 and v1.2 when releasing v1.2.3
