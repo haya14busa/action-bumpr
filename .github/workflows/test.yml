@@ -10,13 +10,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Get Star Count
+      - name: test
         uses: ./
-        id: sample
+        id: test
         with:
-          repo: "reviewdog/reviewdog"
-
-      - name: Check Star Count
-        run: |
-          test -n "${{ steps.sample.outputs.star }}"
-          echo "${{ steps.sample.outputs.star }}"
+          dry_run: true
+        env:
+          GITHUB_EVENT_PATH: "testdata/merge_event_with_labels.json"
