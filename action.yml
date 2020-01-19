@@ -1,0 +1,20 @@
+name: 'TODO: write action name'
+description: 'TODO: write description'
+author: 'haya14busa' # TODO: write your name.
+inputs:
+  github_token:
+    description: 'GITHUB_TOKEN'
+    default: '${{ github.token }}'
+  repo:
+    description: 'target GitHub repository. e.g. reviewdog/reviewdog'
+    default: '${{ github.repository }}'
+    required: true
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+
+# Ref: https://haya14busa.github.io/github-action-brandings/
+# TODO: update branding.
+branding:
+  icon: 'activity'
+  color: 'white'

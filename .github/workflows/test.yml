@@ -1,0 +1,22 @@
+name: Test
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Get Star Count
+        uses: ./
+        id: sample
+        with:
+          repo: "reviewdog/reviewdog"
+
+      - name: Check Star Count
+        run: |
+          test -n "${{ steps.sample.outputs.star }}"
+          echo "${{ steps.sample.outputs.star }}"
