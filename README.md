@@ -22,6 +22,8 @@ outputs:
     description: "next version"
   skip:
     description: "True if release is skipped. e.g. No labels attached to PR."
+  message:
+    description: "Tag message"
 ```
 
 ## Usage
