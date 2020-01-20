@@ -39,7 +39,22 @@ fi
 echo "Bump ${BUMP_LEVEL} version"
 
 git fetch --tags # Fetch existing tags before bump.
-NEXT_VERSION=$(bump ${BUMP_LEVEL})
+NEXT_VERSION="$(bump ${BUMP_LEVEL})" || true
+
+# Set next version tag in case existing tags not found.
+if [ -z "${NEXT_VERSION}" ] && [ -z "$(git tag)" ]; then
+	case "${BUMP_LEVEL}" in
+		major)
+			NEXT_VERSION="v1.0.0"
+			;;
+		minor)
+			NEXT_VERSION="v0.1.0"
+			;;
+		patch)
+			NEXT_VERSION="v0.0.1"
+			;;
+	esac
+fi
 
 if [ -z "${NEXT_VERSION}" ]; then
   echo "Cannot find next version."
