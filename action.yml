@@ -7,7 +7,7 @@ inputs:
   dry_run:
     description: "Do not actually tag next version if it's true"
   github_token:
-    description: 'GITHUB_TOKEN to get latest version with GitHub Release API'
+    description: 'GITHUB_TOKEN to list pull requests'
     default: '${{ github.token }}'
 outputs:
   next_version:
