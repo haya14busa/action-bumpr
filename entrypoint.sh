@@ -32,7 +32,7 @@ elif echo "${LABELS}" | grep "bump:patch" ; then
 fi
 
 if [ -z "${BUMP_LEVEL}" ]; then
-  echo "Labels for bump not found. Do nothing."
+  echo "PR with labels for bump not found. Do nothing."
   echo "::set-output name=skip::true"
   exit
 fi
