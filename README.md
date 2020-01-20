@@ -5,6 +5,7 @@
 [![Test](https://github.com/haya14busa/action-bumpr/workflows/Test/badge.svg)](https://github.com/haya14busa/action-bumpr/actions?query=workflow%3ATest)
 [![reviewdog](https://github.com/haya14busa/action-bumpr/workflows/reviewdog/badge.svg)](https://github.com/haya14busa/action-bumpr/actions?query=workflow%3Areviewdog)
 [![release](https://github.com/haya14busa/action-bumpr/workflows/release/badge.svg)](https://github.com/haya14busa/action-bumpr/actions?query=workflow%3Arelease)
+[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/haya14busa/action-bumpr?logo=github&sort=semver)](https://github.com/haya14busa/action-bumpr/releases)
 
 **action-bumpr** bumps semantic version tag on merging Pull Requests with
 specific lables (`bump:major`,`bump:minor`,`bump:patch`).
