@@ -39,6 +39,8 @@ fi
 echo "Bump ${BUMP_LEVEL} version"
 
 git fetch --tags # Fetch existing tags before bump.
+# Fetch history as well because bump uses git history (git tag --merged).
+git fetch --prune --unshallow
 NEXT_VERSION="$(bump ${BUMP_LEVEL})" || true
 
 # Set next version tag in case existing tags not found.
