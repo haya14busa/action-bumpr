@@ -6,8 +6,6 @@ on:
     # for pull_request from fork event.
     branches:
       - master
-    branches-ignore:
-      - '**'
     tags:
       - 'v*.*.*'
 
