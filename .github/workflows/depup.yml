@@ -1,7 +1,7 @@
 name: depup
 on:
   schedule:
-    - cron:  '*/5 * * * *'
+    - cron:  '14 14 * * *'
 
 jobs:
   depup:
