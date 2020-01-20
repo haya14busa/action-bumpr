@@ -10,14 +10,15 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: test
-        uses: ./
-        id: test
-        with:
-          dry_run: true
-          GITHUB_EVENT_PATH: "testdata/merge_event_with_labels.json"
-
-      - name: check output
-        run: |
-          test -n "${{ steps.test.outputs.next_version }}"
-          echo "${{ steps.test.outputs.next_version }}"
+      # TODO: add  test
+      # - name: test
+      #   uses: ./
+      #   id: test
+      #   with:
+      #     dry_run: true
+      #     GITHUB_EVENT_PATH: "testdata/merge_event_with_labels.json"
+      #
+      # - name: check output
+      #   run: |
+      #     test -n "${{ steps.test.outputs.next_version }}"
+      #     echo "${{ steps.test.outputs.next_version }}"
