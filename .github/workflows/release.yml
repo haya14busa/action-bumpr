@@ -1,9 +1,9 @@
 name: release
 on:
   push:
-    # Use push on master event to run workflow on merge instead of pull_request
+    # Use push on master event to run workflow instead of pull_request
     # closed (merged) event because github token doesn't have write permission
-    # for pull_request from fork event.
+    # for pull_request from fork repository.
     branches:
       - master
     tags:

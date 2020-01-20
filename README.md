@@ -31,24 +31,18 @@ outputs:
 ```yaml
 name: release
 on:
-  pull_request:
-    types: [closed]
+  push:
+    branches:
+      - master
 
 jobs:
   release:
-    # Skip on Pull Request Close event.
-    if: "!(github.event_name == 'pull_request' && !github.event.pull_request.merged)"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-        with:
-          # Specify ref explicitly because it doesn't work with Pull Request closed event.
-          # https://github.com/actions/checkout/issues/136
-          ref: ${{ github.ref }}
-
-      # Bump version on merging Pull Requests with specific labels. (bump:major,bump:minor,bump:patch)
-      - if: github.event.pull_request.merged
-        uses: haya14busa/action-bumpr@v1
+      # Bump version on merging Pull Requests with specific labels.
+      # (bump:major,bump:minor,bump:patch)
+      - uses: haya14busa/action-bumpr@v1
 ```
 
 ### Integarate with other release related actions.
@@ -62,31 +56,25 @@ and v1.2 tag on v1.2.3 release).
 name: release
 on:
   push:
-    branches-ignore:
-      - '**'
+    branches:
+      - master
     tags:
       - 'v*.*.*'
-  pull_request:
-    types: [closed]
 
 jobs:
   release:
-    # Skip on Pull Request Close event.
-    if: "!(github.event_name == 'pull_request' && !github.event.pull_request.merged)"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-        # Specify ref explicitly because it doesn't work with Pull Request closed event.
-        # https://github.com/actions/checkout/issues/136
-        with:
-          ref: ${{ github.ref }}
 
-      # Bump version on merging Pull Requests with specific labels. (bump:major,bump:minor,bump:patch)
+      # Bump version on merging Pull Requests with specific labels.
+      # (bump:major,bump:minor,bump:patch)
       - id: bumpr
-        if: github.event.pull_request.merged
+        if: "!startsWith(github.ref, 'refs/tags/')"
         uses: haya14busa/action-bumpr@v1
 
-      # Update corresponding major and minor tag. e.g. Update v1 and v1.2 when releasing v1.2.3
+      # Update corresponding major and minor tag.
+      # e.g. Update v1 and v1.2 when releasing v1.2.3
       - uses: haya14busa/action-update-semver@v1
         if: "!steps.bumpr.outputs.skip"
         with:
@@ -94,5 +82,7 @@ jobs:
           tag: ${{ steps.bumpr.outputs.next_version }}
 ```
 
-### Caveat
-action-bumpr expects actions/checkout@v2 and it won't work with actions/checkout@v1.
+### Note
+action-bumpr uses push on master event to run workflow instead of pull_request
+closed (merged) event because github token doesn't have write permission
+for pull_request from fork repository.
