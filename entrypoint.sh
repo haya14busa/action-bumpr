@@ -5,19 +5,23 @@ if [ -n "${GITHUB_WORKSPACE}" ]; then
   cd "${GITHUB_WORKSPACE}" || exit
 fi
 
-EVENT_PATH="${GITHUB_EVENT_PATH}"
-if [ -n "${INPUT_GITHUB_EVENT_PATH}" ]; then
-  EVENT_PATH="${INPUT_GITHUB_EVENT_PATH}"
-fi
+list_pulls() {
+  PULLS_ENDPOINT="https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls?state=closed&sort=updated&direction=desc"
+  if [ -n "${INPUT_GITHUB_TOKEN}" ]; then
+    echo "Use INPUT_GITHUB_TOKEN to list pull requests." >&2
+    curl -s -H "Authorization: token ${INPUT_GITHUB_TOKEN}" "${PULLS_ENDPOINT}"
+  else
+    echo "INPUT_GITHUB_TOKEN is not available. Subscequent GitHub API call may fail due to API limit." >&2
+    curl -s "${PULLS_ENDPOINT}"
+  fi
+}
 
-MERGED=$(jq -r .pull_request.merged < "${EVENT_PATH}")
+# Get labels and Pull Request data.
+PULL_REQUEST="$(list_pulls | jq ".[] | select(.merge_commit_sha==\"${GITHUB_SHA}\")")"
+LABELS=$(echo "${PULL_REQUEST}" | jq '.labels | .[].name')
+PR_NUMBER=$(echo "${PULL_REQUEST}" | jq -r .number)
+PR_TITLE=$(echo "${PULL_REQUEST}" | jq -r .title)
 
-if [ "${MERGED}" != "true" ]; then
-  echo "It's not running on pull request merged event."
-  exit 1
-fi
-
-LABELS=$(jq -r '.pull_request.labels | .[].name' < "${EVENT_PATH}")
 BUMP_LEVEL="${INPUT_DEFAULT_BUMP_LEVEL}"
 if echo "${LABELS}" | grep "bump:major" ; then
   BUMP_LEVEL="major"
@@ -28,7 +32,7 @@ elif echo "${LABELS}" | grep "bump:patch" ; then
 fi
 
 if [ -z "${BUMP_LEVEL}" ]; then
-  echo "Labels for bump not found. Do nothing."
+  echo "PR with labels for bump not found. Do nothing."
   echo "::set-output name=skip::true"
   exit
 fi
@@ -43,9 +47,7 @@ if [ -z "${NEXT_VERSION}" ]; then
 fi
 echo "::set-output name=next_version::${NEXT_VERSION}"
 
-PR_NUMBER=$(jq -r .pull_request.number < "${EVENT_PATH}")
-PR_TITLE=$(jq -r .pull_request.title < "${EVENT_PATH}")
-TAG_MESSAGE="${NEXT_VERSION}\nMerged #${PR_NUMBER}: ${PR_TITLE}"
+TAG_MESSAGE="${NEXT_VERSION}: PR #${PR_NUMBER} - ${PR_TITLE}"
 
 if [ "${INPUT_DRY_RUN}" = "true" ]; then
   echo "DRY_RUN=true. Do not tag next version."
@@ -60,5 +62,5 @@ git config user.name "${GITHUB_ACTOR}"
 git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
 
 # Push the next tag.
-git tag -a "${NEXT_VERSION}" -m "${NEXT_VERSION}: PR #${PR_NUMBER} - ${PR_TITLE}"
+git tag -a "${NEXT_VERSION}" -m "${TAG_MESSAGE}"
 git push origin "${NEXT_VERSION}"

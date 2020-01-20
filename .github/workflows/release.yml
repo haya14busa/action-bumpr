@@ -1,28 +1,23 @@
 name: release
 on:
   push:
-    branches-ignore:
-      - '**'
+    # Use push on master event to run workflow instead of pull_request
+    # closed (merged) event because github token doesn't have write permission
+    # for pull_request from fork repository.
+    branches:
+      - master
     tags:
       - 'v*.*.*'
-  pull_request:
-    types: [closed]
 
 jobs:
   release:
-    # Skip on Pull Request Close event.
-    if: "!(github.event_name == 'pull_request' && !github.event.pull_request.merged)"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-        # Specify ref explicitly because it doesn't work with Pull Request closed event.
-        # https://github.com/actions/checkout/issues/136
-        with:
-          ref: ${{ github.ref }}
 
       # Bump version on merging Pull Requests with specific labels. (bump:major,bump:minor,bump:patch)
       - id: bumpr
-        if: github.event.pull_request.merged
+        if: "!startsWith(github.ref, 'refs/tags/')"
         name: haya14busa/action-bumpr
         uses: ./
 
