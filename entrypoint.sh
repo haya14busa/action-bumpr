@@ -8,7 +8,6 @@ fi
 list_pulls() {
   PULLS_ENDPOINT="https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls?state=closed&sort=updated&direction=desc"
   if [ -n "${INPUT_GITHUB_TOKEN}" ]; then
-    echo "Use INPUT_GITHUB_TOKEN to list pull requests." >&2
     curl -s -H "Authorization: token ${INPUT_GITHUB_TOKEN}" "${PULLS_ENDPOINT}"
   else
     echo "INPUT_GITHUB_TOKEN is not available. Subscequent GitHub API call may fail due to API limit." >&2
