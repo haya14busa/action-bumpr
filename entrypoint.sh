@@ -48,6 +48,7 @@ fi
 echo "::set-output name=next_version::${NEXT_VERSION}"
 
 TAG_MESSAGE="${NEXT_VERSION}: PR #${PR_NUMBER} - ${PR_TITLE}"
+echo "::set-output name=message::${TAG_MESSAGE}"
 
 if [ "${INPUT_DRY_RUN}" = "true" ]; then
   echo "DRY_RUN=true. Do not tag next version."
