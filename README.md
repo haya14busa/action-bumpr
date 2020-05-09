@@ -38,6 +38,9 @@ on:
   push:
     branches:
       - master
+  pull_request:
+    types:
+      - labeled
 
 jobs:
   release:
@@ -64,9 +67,13 @@ on:
       - master
     tags:
       - 'v*.*.*'
+  pull_request:
+    types:
+      - labeled
 
 jobs:
   release:
+    if: github.event.action != 'labeled'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -84,6 +91,13 @@ jobs:
         with:
           github_token: ${{ secrets.github_token }}
           tag: ${{ steps.bumpr.outputs.next_version }}
+  release-check:
+    if: github.event.action == 'labeled'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Post bumpr status comment
+        uses: haya14busa/action-bumpr@v1
 ```
 
 ### Badge
