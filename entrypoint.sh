@@ -10,16 +10,16 @@ fi
 # - PR_NUMBER
 # - PR_TITLE
 setup_from_labeled_event() {
-  local LABEL=$(cat "${GITHUB_EVENT_PATH}" | jq -r '.label.name')
-  if echo "${LABEL}" | grep "^bump:" ; then
-    echo "Found label=${LABEL}" >&2
-    LABELS="${LABEL}"
+  label=$(jq -r '.label.name' < "${GITHUB_EVENT_PATH}")
+  if echo "${label}" | grep "^bump:" ; then
+    echo "Found label=${label}" >&2
+    LABELS="${label}"
   else
-    echo "Attached label name does not match with 'bump:'. label=${LABEL}" >&2
+    echo "Attached label name does not match with 'bump:'. label=${label}" >&2
     exit 0
   fi
-  PR_NUMBER=$(cat "${GITHUB_EVENT_PATH}" | jq -r '.pull_request.number')
-  PR_TITLE=$(cat "${GITHUB_EVENT_PATH}" | jq -r '.pull_request.title')
+  PR_NUMBER=$(jq -r '.pull_request.number' < "${GITHUB_EVENT_PATH}")
+  PR_TITLE=$(jq -r '.pull_request.title' < "${GITHUB_EVENT_PATH}")
 }
 
 # Setup these env variables.
@@ -27,63 +27,57 @@ setup_from_labeled_event() {
 # - PR_NUMBER
 # - PR_TITLE
 setup_from_push_event() {
-  local PULL_REQUEST="$(list_pulls | jq ".[] | select(.merge_commit_sha==\"${GITHUB_SHA}\")")"
-  LABELS=$(echo "${PULL_REQUEST}" | jq '.labels | .[].name')
-  PR_NUMBER=$(echo "${PULL_REQUEST}" | jq -r .number)
-  PR_TITLE=$(echo "${PULL_REQUEST}" | jq -r .title)
+  pull_request="$(list_pulls | jq ".[] | select(.merge_commit_sha==\"${GITHUB_SHA}\")")"
+  LABELS=$(echo "${pull_request}" | jq '.labels | .[].name')
+  PR_NUMBER=$(echo "${pull_request}" | jq -r .number)
+  PR_TITLE=$(echo "${pull_request}" | jq -r .title)
 }
 
 list_pulls() {
-  local PULLS_ENDPOINT="https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls?state=closed&sort=updated&direction=desc"
+  pulls_endpoint="https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls?state=closed&sort=updated&direction=desc"
   if [ -n "${INPUT_GITHUB_TOKEN}" ]; then
-    curl -s -H "Authorization: token ${INPUT_GITHUB_TOKEN}" "${PULLS_ENDPOINT}"
+    curl -s -H "Authorization: token ${INPUT_GITHUB_TOKEN}" "${pulls_endpoint}"
   else
     echo "INPUT_GITHUB_TOKEN is not available. Subscequent GitHub API call may fail due to API limit." >&2
-    curl -s "${PULLS_ENDPOINT}"
+    curl -s "${pulls_endpoint}"
   fi
 }
 
-# ### :rocket: [[action-bumpr]](https://github.com/haya14busa/action-bumpr) 
-# This Pull Request will bump minor version on merge. 
-#
-# - **Next version:** v0.1.0
-# - **Changes:** [v0.0.3...master](https://github.com/haya14busa/github-actions-playground/compare/v0.0.3...master)
-# - **Label:** `bump:minor`
 post() {
-  local CURRENT_VERSION="$(git describe --abbrev=0 --tags)" || true
-  local HEAD_LABEL="$(cat "${GITHUB_EVENT_PATH}" | jq -r '.pull_request.head.label')"
-  local COMPARE=""
-  if [ -n "${CURRENT_VERSION}" ]; then
-    COMPARE="**Changes**:[${HEAD_LABEL}...${CURRENT_VERSION}](https://github.com/${GITHUB_REPOSITORY}/compare/${HEAD_LABEL}...${CURRENT_VERSION})"
+  current_version="$(git describe --abbrev=0 --tags)" || true
+  head_label="$(jq -r '.pull_request.head.label' < "${GITHUB_EVENT_PATH}" )"
+  compare=""
+  if [ -n "${current_version}" ]; then
+    compare="**Changes**:[${head_label}...${current_version}](https://github.com/${GITHUB_REPOSITORY}/compare/${head_label}...${current_version})"
   fi
-  local TXT="🚀 [[bumpr]](https://github.com/haya14busa/action-bumpr)
+  post_txt="🚀 [[bumpr]](https://github.com/haya14busa/action-bumpr)
 **Next version**:${NEXT_VERSION}
-${COMPARE}"
-  FROM_FORK=$(cat "${GITHUB_EVENT_PATH}" | jq -r '.pull_request.head.repo.fork')
+${compare}"
+  FROM_FORK=$(jq -r '.pull_request.head.repo.fork' < "${GITHUB_EVENT_PATH}")
   if [ "${FROM_FORK}" = "true" ]; then
-    post_warning "${TXT}"
+    post_warning "${post_txt}"
   else
-    post_comment "${TXT}"
+    post_comment "${post_txt}"
   fi
 }
 
 # It assumes setup func is called beforehand. 
 # POST /repos/:owner/:repo/issues/:issue_number/comments
 post_comment() {
-  local BODY_TEXT="$1"
-  local ENDPOINT="https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments"
-  local BODY="$(echo $BODY_TEXT | jq -ncR '{body: input}')"
-  curl -H "Authorization: token ${INPUT_GITHUB_TOKEN}" -d "${BODY}" "${ENDPOINT}"
+  body_text="$1"
+  endpoint="https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments"
+  body="$(echo $body_text | jq -ncR '{body: input}')"
+  curl -H "Authorization: token ${INPUT_GITHUB_TOKEN}" -d "${body}" "${endpoint}"
 }
 
 post_warning() {
-  local BODY_TEXT=$(echo "$1" | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/%0A/g')
-  echo "::warning ::${BODY_TEXT}"
+  body_text=$(echo "$1" | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/%0A/g')
+  echo "::warning ::${body_text}"
 }
 
 # Get labels and Pull Request data.
-ACTION=$(cat "${GITHUB_EVENT_PATH}" | jq -r '.action')
-if [ ${ACTION} = "labeled" ]; then
+ACTION=$(jq -r '.action' < "${GITHUB_EVENT_PATH}" )
+if [ "${ACTION}" = "labeled" ]; then
   setup_from_labeled_event
 else
   setup_from_push_event
@@ -142,7 +136,7 @@ if [ "${INPUT_DRY_RUN}" = "true" ]; then
   exit
 fi
 
-if [ ${ACTION} = "labeled" ]; then
+if [ "${ACTION}" = "labeled" ]; then
   post
 else
   # Set up Git.
