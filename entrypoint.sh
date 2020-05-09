@@ -48,7 +48,7 @@ post() {
   head_label="$(jq -r '.pull_request.head.label' < "${GITHUB_EVENT_PATH}" )"
   compare=""
   if [ -n "${current_version}" ]; then
-    compare="**Changes**:[${head_label}...${current_version}](https://github.com/${GITHUB_REPOSITORY}/compare/${head_label}...${current_version})"
+    compare="**Changes**:[${current_version}...${head_label}](https://github.com/${GITHUB_REPOSITORY}/compare/${current_version}...${head_label})"
   fi
   post_txt="🚀 [[bumpr]](https://github.com/haya14busa/action-bumpr)
 **Next version**:${NEXT_VERSION}
