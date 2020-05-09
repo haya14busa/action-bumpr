@@ -5,8 +5,36 @@ if [ -n "${GITHUB_WORKSPACE}" ]; then
   cd "${GITHUB_WORKSPACE}" || exit
 fi
 
+# Setup these env variables. It can exit 0 for unknown label.
+# - LABELS
+# - PR_NUMBER
+# - PR_TITLE
+setup_from_labeled_event() {
+  local LABEL=$(cat "${GITHUB_EVENT_PATH}" | jq -r '.label.name')
+  if echo "${LABEL}" | grep "^bump:" ; then
+    echo "Found label=${LABEL}" >&2
+    LABELS="${LABEL}"
+  else
+    echo "Attached label name does not match with 'bump:'. label=${LABEL}" >&2
+    exit 0
+  fi
+  PR_NUMBER=$(cat "${GITHUB_EVENT_PATH}" | jq -r '.pull_request.number')
+  PR_TITLE=$(cat "${GITHUB_EVENT_PATH}" | jq -r '.pull_request.title')
+}
+
+# Setup these env variables.
+# - LABELS
+# - PR_NUMBER
+# - PR_TITLE
+setup_from_push_event() {
+  local PULL_REQUEST="$(list_pulls | jq ".[] | select(.merge_commit_sha==\"${GITHUB_SHA}\")")"
+  LABELS=$(echo "${PULL_REQUEST}" | jq '.labels | .[].name')
+  PR_NUMBER=$(echo "${PULL_REQUEST}" | jq -r .number)
+  PR_TITLE=$(echo "${PULL_REQUEST}" | jq -r .title)
+}
+
 list_pulls() {
-  PULLS_ENDPOINT="https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls?state=closed&sort=updated&direction=desc"
+  local PULLS_ENDPOINT="https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls?state=closed&sort=updated&direction=desc"
   if [ -n "${INPUT_GITHUB_TOKEN}" ]; then
     curl -s -H "Authorization: token ${INPUT_GITHUB_TOKEN}" "${PULLS_ENDPOINT}"
   else
@@ -15,11 +43,51 @@ list_pulls() {
   fi
 }
 
+# ### :rocket: [[action-bumpr]](https://github.com/haya14busa/action-bumpr) 
+# This Pull Request will bump minor version on merge. 
+#
+# - **Next version:** v0.1.0
+# - **Changes:** [v0.0.3...master](https://github.com/haya14busa/github-actions-playground/compare/v0.0.3...master)
+# - **Label:** `bump:minor`
+post() {
+  local CURRENT_VERSION="$(git describe --abbrev=0 --tags)" || true
+  local HEAD_LABEL="$(cat "${GITHUB_EVENT_PATH}" | jq -r '.pull_request.head.label')"
+  local COMPARE=""
+  if [ -n "${CURRENT_VERSION}" ]; then
+    COMPARE="**Changes**:[${HEAD_LABEL}...${CURRENT_VERSION}](https://github.com/${GITHUB_REPOSITORY}/compare/${HEAD_LABEL}...${CURRENT_VERSION})"
+  fi
+  local TXT="🚀 [[bumpr]](https://github.com/haya14busa/action-bumpr)
+**Next version**:${NEXT_VERSION}
+${COMPARE}"
+  FROM_FORK=$(cat "${GITHUB_EVENT_PATH}" | jq -r '.pull_request.head.repo.fork')
+  if [ "${FROM_FORK}" = "true" ]; then
+    post_warning "${TXT}"
+  else
+    post_comment "${TXT}"
+  fi
+}
+
+# It assumes setup func is called beforehand. 
+# POST /repos/:owner/:repo/issues/:issue_number/comments
+post_comment() {
+  local BODY_TEXT="$1"
+  local ENDPOINT="https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments"
+  local BODY="$(echo $BODY_TEXT | jq -ncR '{body: input}')"
+  curl -H "Authorization: token ${INPUT_GITHUB_TOKEN}" -d "${BODY}" "${ENDPOINT}"
+}
+
+post_warning() {
+  local BODY_TEXT=$(echo "$1" | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/%0A/g')
+  echo "::warning ::${BODY_TEXT}"
+}
+
 # Get labels and Pull Request data.
-PULL_REQUEST="$(list_pulls | jq ".[] | select(.merge_commit_sha==\"${GITHUB_SHA}\")")"
-LABELS=$(echo "${PULL_REQUEST}" | jq '.labels | .[].name')
-PR_NUMBER=$(echo "${PULL_REQUEST}" | jq -r .number)
-PR_TITLE=$(echo "${PULL_REQUEST}" | jq -r .title)
+ACTION=$(cat "${GITHUB_EVENT_PATH}" | jq -r '.action')
+if [ ${ACTION} = "labeled" ]; then
+  setup_from_labeled_event
+else
+  setup_from_push_event
+fi
 
 BUMP_LEVEL="${INPUT_DEFAULT_BUMP_LEVEL}"
 if echo "${LABELS}" | grep "bump:major" ; then
@@ -74,10 +142,14 @@ if [ "${INPUT_DRY_RUN}" = "true" ]; then
   exit
 fi
 
-# Set up Git.
-git config user.name "${GITHUB_ACTOR}"
-git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+if [ ${ACTION} = "labeled" ]; then
+  post
+else
+  # Set up Git.
+  git config user.name "${GITHUB_ACTOR}"
+  git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
 
-# Push the next tag.
-git tag -a "${NEXT_VERSION}" -m "${TAG_MESSAGE}"
-git push origin "${NEXT_VERSION}"
+  # Push the next tag.
+  git tag -a "${NEXT_VERSION}" -m "${TAG_MESSAGE}"
+  git push origin "${NEXT_VERSION}"
+fi
