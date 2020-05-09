@@ -44,7 +44,7 @@ list_pulls() {
 }
 
 post() {
-  current_version="$(git tag --merged | grep -E 'v?([0-9]+\.?){3}' | sort -V --reverse | head -n 1)" || true
+  current_version="$(bump current)" || true
   head_label="$(jq -r '.pull_request.head.label' < "${GITHUB_EVENT_PATH}" )"
   compare=""
   if [ -n "${current_version}" ]; then
