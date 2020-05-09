@@ -1,6 +1,6 @@
 FROM alpine:3.10
 
-ENV BUMP_VERSION=v1.0.1
+ENV BUMP_VERSION=v1.1.0
 
 SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
 

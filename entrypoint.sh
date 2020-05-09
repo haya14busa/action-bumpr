@@ -5,21 +5,84 @@ if [ -n "${GITHUB_WORKSPACE}" ]; then
   cd "${GITHUB_WORKSPACE}" || exit
 fi
 
+# Setup these env variables. It can exit 0 for unknown label.
+# - LABELS
+# - PR_NUMBER
+# - PR_TITLE
+setup_from_labeled_event() {
+  label=$(jq -r '.label.name' < "${GITHUB_EVENT_PATH}")
+  if echo "${label}" | grep "^bump:" ; then
+    echo "Found label=${label}" >&2
+    LABELS="${label}"
+  else
+    echo "Attached label name does not match with 'bump:'. label=${label}" >&2
+    exit 0
+  fi
+  PR_NUMBER=$(jq -r '.pull_request.number' < "${GITHUB_EVENT_PATH}")
+  PR_TITLE=$(jq -r '.pull_request.title' < "${GITHUB_EVENT_PATH}")
+}
+
+# Setup these env variables.
+# - LABELS
+# - PR_NUMBER
+# - PR_TITLE
+setup_from_push_event() {
+  pull_request="$(list_pulls | jq ".[] | select(.merge_commit_sha==\"${GITHUB_SHA}\")")"
+  LABELS=$(echo "${pull_request}" | jq '.labels | .[].name')
+  PR_NUMBER=$(echo "${pull_request}" | jq -r .number)
+  PR_TITLE=$(echo "${pull_request}" | jq -r .title)
+}
+
 list_pulls() {
-  PULLS_ENDPOINT="https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls?state=closed&sort=updated&direction=desc"
+  pulls_endpoint="https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls?state=closed&sort=updated&direction=desc"
   if [ -n "${INPUT_GITHUB_TOKEN}" ]; then
-    curl -s -H "Authorization: token ${INPUT_GITHUB_TOKEN}" "${PULLS_ENDPOINT}"
+    curl -s -H "Authorization: token ${INPUT_GITHUB_TOKEN}" "${pulls_endpoint}"
   else
     echo "INPUT_GITHUB_TOKEN is not available. Subscequent GitHub API call may fail due to API limit." >&2
-    curl -s "${PULLS_ENDPOINT}"
+    curl -s "${pulls_endpoint}"
   fi
 }
 
+post() {
+  current_version="$(bump current)" || true
+  head_label="$(jq -r '.pull_request.head.label' < "${GITHUB_EVENT_PATH}" )"
+  compare=""
+  if [ -n "${current_version}" ]; then
+    compare="**Changes**:[${current_version}...${head_label}](https://github.com/${GITHUB_REPOSITORY}/compare/${current_version}...${head_label})"
+  fi
+  post_txt="🚀 [[bumpr]](https://github.com/haya14busa/action-bumpr)
+**Next version**:${NEXT_VERSION}
+${compare}"
+  FROM_FORK=$(jq -r '.pull_request.head.repo.fork' < "${GITHUB_EVENT_PATH}")
+  if [ "${FROM_FORK}" = "true" ]; then
+    post_warning "${post_txt}"
+  else
+    post_comment "${post_txt}"
+  fi
+}
+
+# It assumes setup func is called beforehand. 
+# POST /repos/:owner/:repo/issues/:issue_number/comments
+post_comment() {
+  body_text="$1"
+  endpoint="https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments"
+  # Do not quote body_text for multiline comments.
+  body="$(echo ${body_text} | jq -ncR '{body: input}')"
+  curl -H "Authorization: token ${INPUT_GITHUB_TOKEN}" -d "${body}" "${endpoint}"
+}
+
+post_warning() {
+  body_text=$(echo "$1" | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/%0A/g')
+  echo "::warning ::${body_text}"
+}
+
 # Get labels and Pull Request data.
-PULL_REQUEST="$(list_pulls | jq ".[] | select(.merge_commit_sha==\"${GITHUB_SHA}\")")"
-LABELS=$(echo "${PULL_REQUEST}" | jq '.labels | .[].name')
-PR_NUMBER=$(echo "${PULL_REQUEST}" | jq -r .number)
-PR_TITLE=$(echo "${PULL_REQUEST}" | jq -r .title)
+ACTION=$(jq -r '.action' < "${GITHUB_EVENT_PATH}" )
+if [ "${ACTION}" = "labeled" ]; then
+  setup_from_labeled_event
+else
+  setup_from_push_event
+fi
 
 BUMP_LEVEL="${INPUT_DEFAULT_BUMP_LEVEL}"
 if echo "${LABELS}" | grep "bump:major" ; then
@@ -74,10 +137,14 @@ if [ "${INPUT_DRY_RUN}" = "true" ]; then
   exit
 fi
 
-# Set up Git.
-git config user.name "${GITHUB_ACTOR}"
-git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+if [ "${ACTION}" = "labeled" ]; then
+  post
+else
+  # Set up Git.
+  git config user.name "${GITHUB_ACTOR}"
+  git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
 
-# Push the next tag.
-git tag -a "${NEXT_VERSION}" -m "${TAG_MESSAGE}"
-git push origin "${NEXT_VERSION}"
+  # Push the next tag.
+  git tag -a "${NEXT_VERSION}" -m "${TAG_MESSAGE}"
+  git push origin "${NEXT_VERSION}"
+fi

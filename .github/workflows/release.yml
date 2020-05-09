@@ -8,9 +8,13 @@ on:
       - master
     tags:
       - 'v*.*.*'
+  pull_request:
+    types:
+      - labeled
 
 jobs:
   release:
+    if: github.event.action != 'labeled'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -48,3 +52,12 @@ jobs:
           body: ${{ steps.bumpr.outputs.message }}
           draft: false
           prerelease: false
+
+  release-check:
+    if: github.event.action == 'labeled'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      # Post bumpr status comment
+      - name: haya14busa/action-bumpr
+        uses: ./
