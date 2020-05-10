@@ -11,6 +11,8 @@
 **action-bumpr** bumps semantic version tag on merging Pull Requests with
 specific lables (`bump:major`,`bump:minor`,`bump:patch`).
 
+[![example](https://user-images.githubusercontent.com/3797062/81489783-edd2b880-92b4-11ea-84d5-ea54f3b3fb16.png)](https://github.com/haya14busa/action-bumpr/pull/18)
+
 ## Input
 
 ```yaml
