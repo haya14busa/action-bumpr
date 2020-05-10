@@ -1,5 +1,8 @@
 # action-bumpr
 
+**action-bumpr** bumps semantic version tag on merging Pull Requests with
+specific lables (`bump:major`,`bump:minor`,`bump:patch`).
+
 ![action-bumpr image](https://user-images.githubusercontent.com/3797062/72686834-dc19a980-3b3b-11ea-9a25-3c5be36d45b1.png)
 
 [![Test](https://github.com/haya14busa/action-bumpr/workflows/Test/badge.svg)](https://github.com/haya14busa/action-bumpr/actions?query=workflow%3ATest)
@@ -7,9 +10,6 @@
 [![release](https://github.com/haya14busa/action-bumpr/workflows/release/badge.svg)](https://github.com/haya14busa/action-bumpr/actions?query=workflow%3Arelease)
 [![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/haya14busa/action-bumpr?logo=github&sort=semver)](https://github.com/haya14busa/action-bumpr/releases)
 [![action-bumpr supported](https://img.shields.io/badge/bumpr-supported-ff69b4?logo=github&link=https://github.com/haya14busa/action-bumpr)](https://github.com/haya14busa/action-bumpr)
-
-**action-bumpr** bumps semantic version tag on merging Pull Requests with
-specific lables (`bump:major`,`bump:minor`,`bump:patch`).
 
 [![example](https://user-images.githubusercontent.com/3797062/81489783-edd2b880-92b4-11ea-84d5-ea54f3b3fb16.png)](https://github.com/haya14busa/action-bumpr/pull/18)
 
