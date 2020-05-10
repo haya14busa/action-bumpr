@@ -43,14 +43,13 @@ list_pulls() {
   fi
 }
 
-post() {
-  current_version="$(bump current)" || true
+post_pre_status() {
   head_label="$(jq -r '.pull_request.head.label' < "${GITHUB_EVENT_PATH}" )"
   compare=""
-  if [ -n "${current_version}" ]; then
-    compare="**Changes**:[${current_version}...${head_label}](https://github.com/${GITHUB_REPOSITORY}/compare/${current_version}...${head_label})"
+  if [ -n "${CURRENT_VERSION}" ]; then
+    compare="**Changes**:[${CURRENT_VERSION}...${head_label}](https://github.com/${GITHUB_REPOSITORY}/compare/${CURRENT_VERSION}...${head_label})"
   fi
-  post_txt="🚀 [[bumpr]](https://github.com/haya14busa/action-bumpr)
+  post_txt="🏷️ [[bumpr]](https://github.com/haya14busa/action-bumpr)
 **Next version**:${NEXT_VERSION}
 ${compare}"
   FROM_FORK=$(jq -r '.pull_request.head.repo.fork' < "${GITHUB_EVENT_PATH}")
@@ -59,6 +58,18 @@ ${compare}"
   else
     post_comment "${post_txt}"
   fi
+}
+
+post_post_status() {
+  compare=""
+  if [ -n "${CURRENT_VERSION}" ]; then
+    compare="**Changes**:[${CURRENT_VERSION}...${NEXT_VERSION}](https://github.com/${GITHUB_REPOSITORY}/compare/${CURRENT_VERSION}...${NEXT_VERSION})"
+  fi
+  post_txt="🚀 [[bumpr]](https://github.com/haya14busa/action-bumpr) [Bumped!](https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}).
+**New version**:[${NEXT_VERSION}](https://github.com/${GITHUB_REPOSITORY}/releases/tag/${NEXT_VERSION})
+${compare}
+"
+  post_comment "${post_txt}"
 }
 
 # It assumes setup func is called beforehand. 
@@ -103,6 +114,7 @@ echo "Bump ${BUMP_LEVEL} version"
 git fetch --tags # Fetch existing tags before bump.
 # Fetch history as well because bump uses git history (git tag --merged).
 git fetch --prune --unshallow
+CURRENT_VERSION="$(bump current)" || true
 NEXT_VERSION="$(bump ${BUMP_LEVEL})" || true
 
 # Set next version tag in case existing tags not found.
@@ -138,7 +150,7 @@ if [ "${INPUT_DRY_RUN}" = "true" ]; then
 fi
 
 if [ "${ACTION}" = "labeled" ]; then
-  post
+  post_pre_status
 else
   # Set up Git.
   git config user.name "${GITHUB_ACTOR}"
@@ -147,4 +159,7 @@ else
   # Push the next tag.
   git tag -a "${NEXT_VERSION}" -m "${TAG_MESSAGE}"
   git push origin "${NEXT_VERSION}"
+  
+  # Post post-bumpr status on merge.
+  post_post_status
 fi
