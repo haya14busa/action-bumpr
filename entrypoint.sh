@@ -65,7 +65,7 @@ post_post_status() {
   if [ -n "${CURRENT_VERSION}" ]; then
     compare="**Changes**:[${CURRENT_VERSION}...${NEXT_VERSION}](https://github.com/${GITHUB_REPOSITORY}/compare/${CURRENT_VERSION}...${NEXT_VERSION})"
   fi
-  post_txt="🚀 [[bumpr]](https://github.com/haya14busa/action-bumpr) [Bumped!](https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}).
+  post_txt="🚀 [[bumpr]](https://github.com/haya14busa/action-bumpr) [Bumped!](https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})
 **New version**:[${NEXT_VERSION}](https://github.com/${GITHUB_REPOSITORY}/releases/tag/${NEXT_VERSION})
 ${compare}
 "
