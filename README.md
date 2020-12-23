@@ -21,7 +21,11 @@ inputs:
     description: "Default bump level if labels are not attached [major,minor,patch]. Do nothing if it's empty"
   dry_run:
     description: "Do not actually tag next version if it's true"
+  github_token:
+    description: "GITHUB_TOKEN to list pull requests"
 outputs:
+  current_version:
+    description: "current version"
   next_version:
     description: "next version"
   skip:
@@ -54,7 +58,7 @@ jobs:
       - uses: haya14busa/action-bumpr@v1
 ```
 
-### Integarate with other release related actions.
+### Integrate with other release related actions.
 
 Integrate with
 [haya14busa/action-update-semver](https://github.com/haya14busa/action-update-semver)
