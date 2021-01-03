@@ -21,8 +21,6 @@ inputs:
     description: "Default bump level if labels are not attached [major,minor,patch]. Do nothing if it's empty"
   dry_run:
     description: "Do not actually tag next version if it's true"
-  github_token:
-    description: "GITHUB_TOKEN to list pull requests"
 outputs:
   current_version:
     description: "current version"

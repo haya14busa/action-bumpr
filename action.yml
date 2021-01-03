@@ -11,7 +11,7 @@ inputs:
   github_token:
     description: 'GITHUB_TOKEN to list pull requests'
     default: '${{ github.token }}'
-    required: false
+    required: true
 outputs:
   current_version:
     description: "current version"
