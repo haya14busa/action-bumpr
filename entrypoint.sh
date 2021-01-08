@@ -72,7 +72,7 @@ ${compare}
   post_comment "${post_txt}"
 }
 
-# It assumes setup func is called beforehand. 
+# It assumes setup func is called beforehand.
 # POST /repos/:owner/:repo/issues/:issue_number/comments
 post_comment() {
   body_text="$1"
@@ -136,6 +136,7 @@ if [ -z "${NEXT_VERSION}" ]; then
   echo "Cannot find next version."
   exit 1
 fi
+echo "::set-output name=current_version::${CURRENT_VERSION}"
 echo "::set-output name=next_version::${NEXT_VERSION}"
 
 TAG_MESSAGE="${NEXT_VERSION}: PR #${PR_NUMBER} - ${PR_TITLE}"
@@ -159,7 +160,7 @@ else
   # Push the next tag.
   git tag -a "${NEXT_VERSION}" -m "${TAG_MESSAGE}"
   git push origin "${NEXT_VERSION}"
-  
+
   # Post post-bumpr status on merge.
   post_post_status
 fi
