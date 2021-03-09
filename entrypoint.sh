@@ -111,7 +111,7 @@ if [ -z "${BUMP_LEVEL}" ]; then
 fi
 echo "Bump ${BUMP_LEVEL} version"
 
-git fetch --tags # Fetch existing tags before bump.
+git fetch --tags -f # Fetch existing tags before bump.
 # Fetch history as well because bump uses git history (git tag --merged).
 git fetch --prune --unshallow
 CURRENT_VERSION="$(bump current)" || true
