@@ -34,7 +34,7 @@ setup_from_push_event() {
 }
 
 list_pulls() {
-  pulls_endpoint="https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls?state=closed&sort=updated&direction=desc"
+  pulls_endpoint="${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/pulls?state=closed&sort=updated&direction=desc"
   if [ -n "${INPUT_GITHUB_TOKEN}" ]; then
     curl -s -H "Authorization: token ${INPUT_GITHUB_TOKEN}" "${pulls_endpoint}"
   else
@@ -47,7 +47,7 @@ post_pre_status() {
   head_label="$(jq -r '.pull_request.head.label' < "${GITHUB_EVENT_PATH}" )"
   compare=""
   if [ -n "${CURRENT_VERSION}" ]; then
-    compare="**Changes**:[${CURRENT_VERSION}...${head_label}](https://github.com/${GITHUB_REPOSITORY}/compare/${CURRENT_VERSION}...${head_label})"
+    compare="**Changes**:[${CURRENT_VERSION}...${head_label}](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/compare/${CURRENT_VERSION}...${head_label})"
   fi
   post_txt="🏷️ [[bumpr]](https://github.com/haya14busa/action-bumpr)
 **Next version**:${NEXT_VERSION}
@@ -63,10 +63,10 @@ ${compare}"
 post_post_status() {
   compare=""
   if [ -n "${CURRENT_VERSION}" ]; then
-    compare="**Changes**:[${CURRENT_VERSION}...${NEXT_VERSION}](https://github.com/${GITHUB_REPOSITORY}/compare/${CURRENT_VERSION}...${NEXT_VERSION})"
+    compare="**Changes**:[${CURRENT_VERSION}...${NEXT_VERSION}](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/compare/${CURRENT_VERSION}...${NEXT_VERSION})"
   fi
-  post_txt="🚀 [[bumpr]](https://github.com/haya14busa/action-bumpr) [Bumped!](https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})
-**New version**:[${NEXT_VERSION}](https://github.com/${GITHUB_REPOSITORY}/releases/tag/${NEXT_VERSION})
+  post_txt="🚀 [[bumpr]](https://github.com/haya14busa/action-bumpr) [Bumped!](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})
+**New version**:[${NEXT_VERSION}](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/releases/tag/${NEXT_VERSION})
 ${compare}
 "
   post_comment "${post_txt}"
@@ -76,7 +76,7 @@ ${compare}
 # POST /repos/:owner/:repo/issues/:issue_number/comments
 post_comment() {
   body_text="$1"
-  endpoint="https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments"
+  endpoint="${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments"
   # Do not quote body_text for multiline comments.
   body="$(echo ${body_text} | jq -ncR '{body: input}')"
   curl -H "Authorization: token ${INPUT_GITHUB_TOKEN}" -d "${body}" "${endpoint}"
