@@ -111,9 +111,15 @@ if [ -z "${BUMP_LEVEL}" ]; then
 fi
 echo "Bump ${BUMP_LEVEL} version"
 
-git fetch --tags -f # Fetch existing tags before bump.
-# Fetch history as well because bump uses git history (git tag --merged).
-git fetch --prune --unshallow
+# check the repository is shallowed.
+# comes from https://stackoverflow.com/questions/37531605/how-to-test-if-git-repository-is-shallow
+if "$(git rev-parse --is-shallow-repository)"; then
+  # the repository is shallowed, so we need to fetch all history.
+  git fetch --tags -f # Fetch existing tags before bump.
+  # Fetch history as well because bump uses git history (git tag --merged).
+  git fetch --prune --unshallow
+fi
+
 CURRENT_VERSION="$(bump current)" || true
 NEXT_VERSION="$(bump ${BUMP_LEVEL})" || true
 
