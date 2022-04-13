@@ -2,6 +2,7 @@
 set -e
 
 if [ -n "${GITHUB_WORKSPACE}" ]; then
+  git config --global --add safe.directory "${GITHUB_WORKSPACE}" || exit
   cd "${GITHUB_WORKSPACE}" || exit
 fi
 
