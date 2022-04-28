@@ -19,8 +19,20 @@ specific lables (`bump:major`,`bump:minor`,`bump:patch`).
 inputs:
   default_bump_level:
     description: "Default bump level if labels are not attached [major,minor,patch]. Do nothing if it's empty"
+    required: false
   dry_run:
     description: "Do not actually tag next version if it's true"
+    required: false
+  github_token:
+    description: 'GITHUB_TOKEN to list pull requests and create tags'
+    default: '${{ github.token }}'
+    required: true
+  tag_as_user:
+    description: "Name to use when creating tags"
+    required: false
+  tag_as_email:
+    description: "Email address to use when creating tags"
+    required: false
 outputs:
   current_version:
     description: "current version"
