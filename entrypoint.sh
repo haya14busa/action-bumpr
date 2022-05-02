@@ -161,12 +161,20 @@ if [ "${ACTION}" = "labeled" ]; then
   post_pre_status
 else
   # Set up Git.
-  git config user.name "${GITHUB_ACTOR}"
-  git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+  git config user.name "${INPUT_TAG_AS_USER:-${GITHUB_ACTOR}}"
+  git config user.email "${INPUT_TAG_AS_EMAIL:-${GITHUB_ACTOR}@users.noreply.github.com}"
 
   # Push the next tag.
   git tag -a "${NEXT_VERSION}" -m "${TAG_MESSAGE}"
-  git push origin "${NEXT_VERSION}"
+
+  if [ -n "${INPUT_GITHUB_TOKEN}" ]; then
+    bare_server_url=$(echo "${GITHUB_SERVER_URL}" | sed 's#^.\+://##')
+    git -c "http.${GITHUB_SERVER_URL}/.extraheader=" \
+      push "https://x-access-token:${INPUT_GITHUB_TOKEN}@${bare_server_url}/${GITHUB_REPOSITORY}.git" \
+      "${NEXT_VERSION}"
+  else
+    git push origin "${NEXT_VERSION}"
+  fi
 
   # Post post-bumpr status on merge.
   post_post_status
