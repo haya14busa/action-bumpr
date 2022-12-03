@@ -107,7 +107,7 @@ fi
 
 if [ -z "${BUMP_LEVEL}" ]; then
   echo "PR with labels for bump not found. Do nothing."
-  echo "::set-output name=skip::true"
+  echo "skip=true" >> "$GITHUB_OUTPUT"
   exit
 fi
 echo "Bump ${BUMP_LEVEL} version"
@@ -143,11 +143,11 @@ if [ -z "${NEXT_VERSION}" ]; then
   echo "Cannot find next version."
   exit 1
 fi
-echo "::set-output name=current_version::${CURRENT_VERSION}"
-echo "::set-output name=next_version::${NEXT_VERSION}"
+echo "current_version=${CURRENT_VERSION}" >> "$GITHUB_OUTPUT"
+echo "next_version=${NEXT_VERSION}" >> "$GITHUB_OUTPUT"
 
 TAG_MESSAGE="${NEXT_VERSION}: PR #${PR_NUMBER} - ${PR_TITLE}"
-echo "::set-output name=message::${TAG_MESSAGE}"
+echo "message=${TAG_MESSAGE}" >> "$GITHUB_OUTPUT"
 
 if [ "${INPUT_DRY_RUN}" = "true" ]; then
   echo "DRY_RUN=true. Do not tag next version."
