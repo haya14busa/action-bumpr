@@ -7,7 +7,7 @@ jobs:
   depup:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - uses: haya14busa/action-depup@v1
         id: depup
