@@ -1,7 +1,7 @@
 # action-bumpr
 
 **action-bumpr** bumps semantic version tag on merging Pull Requests with
-specific lables (`bump:major`,`bump:minor`,`bump:patch`).
+specific labels (`bump:major`,`bump:minor`,`bump:patch`).
 
 ![action-bumpr image](https://user-images.githubusercontent.com/3797062/72686834-dc19a980-3b3b-11ea-9a25-3c5be36d45b1.png)
 
