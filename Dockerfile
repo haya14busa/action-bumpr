@@ -9,4 +9,6 @@ RUN wget -O - -q https://raw.githubusercontent.com/haya14busa/bump/master/instal
 
 COPY entrypoint.sh /entrypoint.sh
 
+USER 1001
+
 ENTRYPOINT ["/entrypoint.sh"]
