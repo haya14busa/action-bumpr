@@ -18,6 +18,10 @@ inputs:
   tag_as_email:
     description: "Email address to use when creating tags"
     required: false
+  sign_tags:
+    description: "Whether to GPG sign tags (requires GPG key setup in the workflow)"
+    required: false
+    default: 'false'
 outputs:
   current_version:
     description: "current version"

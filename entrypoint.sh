@@ -165,7 +165,13 @@ else
   git config user.email "${INPUT_TAG_AS_EMAIL:-${GITHUB_ACTOR}@users.noreply.github.com}"
 
   # Push the next tag.
-  git tag -a "${NEXT_VERSION}" -m "${TAG_MESSAGE}"
+  if [ "${INPUT_SIGN_TAGS}" = "true" ]; then
+    echo "Creating signed tag ${NEXT_VERSION}"
+    git tag -s "${NEXT_VERSION}" -m "${TAG_MESSAGE}"
+  else
+    echo "Creating annotated tag ${NEXT_VERSION}"
+    git tag -a "${NEXT_VERSION}" -m "${TAG_MESSAGE}"
+  fi
 
   if [ -n "${INPUT_GITHUB_TOKEN}" ]; then
     bare_server_url=$(echo "${GITHUB_SERVER_URL}" | sed 's#^.\+://##')

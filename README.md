@@ -33,6 +33,10 @@ inputs:
   tag_as_email:
     description: "Email address to use when creating tags"
     required: false
+  sign_tags:
+    description: "Whether to GPG sign tags (requires GPG key setup in the workflow)"
+    required: false
+    default: 'false'
 outputs:
   current_version:
     description: "current version"
@@ -126,3 +130,44 @@ jobs:
 action-bumpr uses push on master event to run workflow instead of pull_request
 closed (merged) event because github token doesn't have write permission
 for pull_request from fork repository.
+
+### GPG Signing Tags
+
+You can enable GPG signing of tags by setting the `sign_tags` input to `true`. This requires setting up GPG keys in your GitHub Actions workflow:
+
+```yaml
+name: release
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    types:
+      - labeled
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      # Set up GPG key
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+          
+      # Bump version with signed tags
+      - uses: haya14busa/action-bumpr@v1
+        with:
+          sign_tags: 'true'
+```
+
+To set up the GPG key:
+1. Generate a GPG key locally if you don't have one: `gpg --full-generate-key`
+2. Export your private key: `gpg --export-secret-keys --armor YOUR_KEY_ID > private.key`
+3. Add the content of private.key as a GitHub repository secret named `GPG_PRIVATE_KEY`
+4. Add your GPG passphrase as a GitHub repository secret named `GPG_PASSPHRASE`
