@@ -21,16 +21,21 @@ inputs:
 outputs:
   current_version:
     description: "current version"
+    value: "${{ steps.bumpr.outputs.current_version }}"
   next_version:
     description: "next version"
+    value: "${{ steps.bumpr.outputs.next_version }}"
   skip:
     description: "True if release is skipped. e.g. No labels attached to PR."
+    value: "${{ steps.bumpr.outputs.skip }}"
   message:
     description: "Tag message"
+    value: "${{ steps.bumpr.outputs.message }}"
 runs:
   using: 'composite'
   steps:
-    - run: $GITHUB_ACTION_PATH/entrypoint.sh
+    - id: bumpr
+      run: $GITHUB_ACTION_PATH/entrypoint.sh
       shell: bash
       env:
         INPUT_DEFAULT_BUMP_LEVEL: ${{ inputs.default_bump_level }}
