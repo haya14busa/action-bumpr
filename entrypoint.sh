@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 set -x # Debug
 
@@ -49,9 +49,9 @@ setup_from_labeled_event() {
 # - PR_TITLE
 setup_from_push_event() {
   pull_request="$(list_pulls | jq ".[] | select(.merge_commit_sha==\"${GITHUB_SHA}\")")"
-  LABELS=$(jq '.labels | .[].name' <<< "${pull_request}")
-  PR_NUMBER=$(jq -r .number <<< "${pull_request}")
-  PR_TITLE=$(jq -r .title <<< "${pull_request}")
+  LABELS="$( jq '.labels | .[].name' <<< "${pull_request}" )"
+  PR_NUMBER="$( jq -r .number <<< "${pull_request}" )"
+  PR_TITLE="$( jq -r .title <<< "${pull_request}" )"
 }
 
 list_pulls() {
