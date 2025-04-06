@@ -49,6 +49,7 @@ setup_from_labeled_event() {
 # - PR_TITLE
 setup_from_push_event() {
   pull_request="$(list_pulls | jq ".[] | select(.merge_commit_sha==\"${GITHUB_SHA}\")")"
+  echo "${pull_request}" # debug
   LABELS=$(echo "${pull_request}" | jq '.labels | .[].name')
   PR_NUMBER=$(echo "${pull_request}" | jq -r .number)
   PR_TITLE=$(echo "${pull_request}" | jq -r .title)
