@@ -6,6 +6,25 @@ if [ -n "${GITHUB_WORKSPACE}" ]; then
   cd "${GITHUB_WORKSPACE}" || exit
 fi
 
+# Install bump
+echo '::group:: Installing bump ...'
+VERSION=v1.1.0
+TEMP="$(mktemp -d)"
+mkdir -p "${TEMP}/bump/bin"
+INSTALL_SCRIPT='https://raw.githubusercontent.com/haya14busa/bump/9ab5412f5d96eb624c7e8559acbb11330be9901a/install.sh'
+(
+  if command -v curl 2>&1 >/dev/null; then
+    curl -sfL "${INSTALL_SCRIPT}"
+  elif command -v wget 2>&1 >/dev/null; then
+    wget -O - "${INSTALL_SCRIPT}"
+  else
+    echo "curl or wget is required" >&2
+    exit 1
+  fi
+) | sh -s -- -b "${TEMP}/bump/bin" "${VERSION}" 2>&1
+bump="${TEMP}/bump/bin/bump"
+echo '::endgroup::'
+
 # Setup these env variables. It can exit 0 for unknown label.
 # - LABELS
 # - PR_NUMBER
@@ -121,8 +140,8 @@ if "$(git rev-parse --is-shallow-repository)"; then
   git fetch --prune --unshallow
 fi
 
-CURRENT_VERSION="$(bump current)" || true
-NEXT_VERSION="$(bump ${BUMP_LEVEL})" || true
+CURRENT_VERSION="$(${bump} current)" || true
+NEXT_VERSION="$(${bump} ${BUMP_LEVEL})" || true
 
 # Set next version tag in case existing tags not found.
 if [ -z "${NEXT_VERSION}" ] && [ -z "$(git tag)" ]; then
