@@ -97,8 +97,8 @@ ${compare}
 post_comment() {
   body_text="$1"
   endpoint="${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments"
-  # Do not quote body_text for multiline comments.
-  body="$(jq -ncR '{body: input}' <<< ${body_text})"
+  # Use jq --arg to properly handle multiline strings
+  body="$(jq -n --arg body "${body_text}" '{body: $body}')"
   curl -H "Authorization: token ${INPUT_GITHUB_TOKEN}" -d "${body}" "${endpoint}"
 }
 
