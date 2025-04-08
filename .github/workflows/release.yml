@@ -6,6 +6,7 @@ on:
     # for pull_request from fork repository.
     branches:
       - master
+      - test_branch*
     tags:
       - 'v*.*.*'
   pull_request:

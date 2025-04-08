@@ -27,6 +27,15 @@ inputs:
     description: 'GITHUB_TOKEN to list pull requests and create tags'
     default: '${{ github.token }}'
     required: true
+  major_labels:
+    description: 'Comma separated list of labels for major releases'
+    default: 'bump:major'
+  minor_labels:
+    description: 'Comma separated list of labels for minor releases'
+    default: 'bump:minor'
+  patch_labels:
+    description: 'Comma separated list of labels for patch releases'
+    default: 'bump:patch'
   tag_as_user:
     description: "Name to use when creating tags"
     required: false

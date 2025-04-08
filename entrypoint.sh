@@ -25,17 +25,21 @@ INSTALL_SCRIPT='https://raw.githubusercontent.com/haya14busa/bump/9ab5412f5d96eb
 bump="${TEMP}/bump/bin/bump"
 echo '::endgroup::'
 
+major_labels_regex="^$(echo "$INPUT_MAJOR_LABELS" | cut -d ',' -f1- --output-delimiter='$|^')$"
+minor_labels_regex="^$(echo "$INPUT_MINOR_LABELS" | cut -d ',' -f1- --output-delimiter='$|^')$"
+patch_labels_regex="^$(echo "$INPUT_PATCH_LABELS" | cut -d ',' -f1- --output-delimiter='$|^')$"
+
 # Setup these env variables. It can exit 0 for unknown label.
 # - LABELS
 # - PR_NUMBER
 # - PR_TITLE
 setup_from_labeled_event() {
   label=$(jq -r '.label.name' < "${GITHUB_EVENT_PATH}")
-  if echo "${label}" | grep "^bump:" ; then
+  if echo "${label}" | grep "(major_labels_regex)|(minor_labels_regex)|(patch_labels_regex)" ; then
     echo "Found label=${label}" >&2
     LABELS="${label}"
   else
-    echo "Attached label name does not match with 'bump:'. label=${label}" >&2
+    echo "Attached label name does not match with any major, minor or patch label. label=${label}" >&2
     exit 0
   fi
   PR_NUMBER=$(jq -r '.pull_request.number' < "${GITHUB_EVENT_PATH}")
@@ -116,11 +120,11 @@ else
 fi
 
 BUMP_LEVEL="${INPUT_DEFAULT_BUMP_LEVEL}"
-if echo "${LABELS}" | grep "bump:major" ; then
+if echo "${LABELS}" | grep "$major_labels_regex" ; then
   BUMP_LEVEL="major"
-elif echo "${LABELS}" | grep "bump:minor" ; then
+elif echo "${LABELS}" | grep "$minor_labels_regex" ; then
   BUMP_LEVEL="minor"
-elif echo "${LABELS}" | grep "bump:patch" ; then
+elif echo "${LABELS}" | grep "$patch_labels_regex" ; then
   BUMP_LEVEL="patch"
 fi
 
