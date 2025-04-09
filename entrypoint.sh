@@ -144,8 +144,8 @@ if "$(git rev-parse --is-shallow-repository)"; then
   git fetch --prune --unshallow
 fi
 
-CURRENT_VERSION="$("${bump} current")" || true
-NEXT_VERSION="$("${bump} ${BUMP_LEVEL}")" || true
+CURRENT_VERSION="$("${bump}" "current")" || true
+NEXT_VERSION="$("${bump}" "${BUMP_LEVEL}")" || true
 
 # Set next version tag in case existing tags not found.
 if [ -z "${NEXT_VERSION}" ] && [ -z "$(git tag)" ]; then
