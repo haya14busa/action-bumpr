@@ -1,5 +1,5 @@
 #!/bin/bash
-set -ex
+set -e
 
 if [ -n "${GITHUB_WORKSPACE}" ]; then
   git config --global --add safe.directory "${GITHUB_WORKSPACE}" || exit
@@ -114,10 +114,8 @@ post_warning() {
 # Get labels and Pull Request data.
 ACTION=$(jq -r '.action' < "${GITHUB_EVENT_PATH}" )
 if [ "${ACTION}" = "labeled" ]; then
-  echo "debug labeled event"
   setup_from_labeled_event
 else
-  echo "debug push event"
   setup_from_push_event
 fi
 
@@ -146,8 +144,8 @@ if "$(git rev-parse --is-shallow-repository)"; then
   git fetch --prune --unshallow
 fi
 
-CURRENT_VERSION="$(${bump} current)" || true
-NEXT_VERSION="$(${bump} ${BUMP_LEVEL})" || true
+CURRENT_VERSION="$("${bump} current")" || true
+NEXT_VERSION="$("${bump} ${BUMP_LEVEL}")" || true
 
 # Set next version tag in case existing tags not found.
 if [ -z "${NEXT_VERSION}" ] && [ -z "$(git tag)" ]; then
@@ -193,7 +191,7 @@ else
   git tag -a "${NEXT_VERSION}" -m "${TAG_MESSAGE}"
 
   if [ -n "${INPUT_GITHUB_TOKEN}" ]; then
-    bare_server_url=$(echo "${GITHUB_SERVER_URL}" | sed 's#^.\+://##')
+    bare_server_url=$(echo "${GITHUB_SERVER_URL/#*:\/\//}")
     git -c "http.${GITHUB_SERVER_URL}/.extraheader=" \
       push "https://x-access-token:${INPUT_GITHUB_TOKEN}@${bare_server_url}/${GITHUB_REPOSITORY}.git" \
       "${NEXT_VERSION}"
