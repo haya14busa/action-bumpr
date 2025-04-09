@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -ex
 
 if [ -n "${GITHUB_WORKSPACE}" ]; then
   git config --global --add safe.directory "${GITHUB_WORKSPACE}" || exit
@@ -114,8 +114,10 @@ post_warning() {
 # Get labels and Pull Request data.
 ACTION=$(jq -r '.action' < "${GITHUB_EVENT_PATH}" )
 if [ "${ACTION}" = "labeled" ]; then
+  echo "debug labeled event"
   setup_from_labeled_event
 else
+  echo "debug push event"
   setup_from_push_event
 fi
 
