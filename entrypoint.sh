@@ -191,7 +191,7 @@ else
   git tag -a "${NEXT_VERSION}" -m "${TAG_MESSAGE}"
 
   if [ -n "${INPUT_GITHUB_TOKEN}" ]; then
-    bare_server_url=$(echo "${GITHUB_SERVER_URL/#*:\/\//}")
+    bare_server_url="${GITHUB_SERVER_URL/#*:\/\//}"
     git -c "http.${GITHUB_SERVER_URL}/.extraheader=" \
       push "https://x-access-token:${INPUT_GITHUB_TOKEN}@${bare_server_url}/${GITHUB_REPOSITORY}.git" \
       "${NEXT_VERSION}"
