@@ -25,9 +25,9 @@ INSTALL_SCRIPT='https://raw.githubusercontent.com/haya14busa/bump/9ab5412f5d96eb
 bump="${TEMP}/bump/bin/bump"
 echo '::endgroup::'
 
-major_labels_regex="^$(echo "$INPUT_MAJOR_LABELS" | cut -d ',' -f1- --output-delimiter='$|^')$"
-minor_labels_regex="^$(echo "$INPUT_MINOR_LABELS" | cut -d ',' -f1- --output-delimiter='$|^')$"
-patch_labels_regex="^$(echo "$INPUT_PATCH_LABELS" | cut -d ',' -f1- --output-delimiter='$|^')$"
+major_labels_regex="^\"$(echo "$INPUT_MAJOR_LABELS" | cut -d ',' -f1- --output-delimiter='"$|^"')\"$"
+minor_labels_regex="^\"$(echo "$INPUT_MINOR_LABELS" | cut -d ',' -f1- --output-delimiter='"$|^"')\"$"
+patch_labels_regex="^\"$(echo "$INPUT_PATCH_LABELS" | cut -d ',' -f1- --output-delimiter='"$|^"')\"$"
 
 # Setup these env variables. It can exit 0 for unknown label.
 # - LABELS
