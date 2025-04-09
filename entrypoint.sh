@@ -25,17 +25,21 @@ INSTALL_SCRIPT='https://raw.githubusercontent.com/haya14busa/bump/9ab5412f5d96eb
 bump="${TEMP}/bump/bin/bump"
 echo '::endgroup::'
 
+major_labels_regex="^\"$(echo "$INPUT_MAJOR_LABELS" | cut -d ',' -f1- --output-delimiter='"$|^"')\"$"
+minor_labels_regex="^\"$(echo "$INPUT_MINOR_LABELS" | cut -d ',' -f1- --output-delimiter='"$|^"')\"$"
+patch_labels_regex="^\"$(echo "$INPUT_PATCH_LABELS" | cut -d ',' -f1- --output-delimiter='"$|^"')\"$"
+
 # Setup these env variables. It can exit 0 for unknown label.
 # - LABELS
 # - PR_NUMBER
 # - PR_TITLE
 setup_from_labeled_event() {
   label=$(jq -r '.label.name' < "${GITHUB_EVENT_PATH}")
-  if echo "${label}" | grep "^bump:" ; then
+  if echo "${label}" | grep "(major_labels_regex)|(minor_labels_regex)|(patch_labels_regex)" ; then
     echo "Found label=${label}" >&2
     LABELS="${label}"
   else
-    echo "Attached label name does not match with 'bump:'. label=${label}" >&2
+    echo "Attached label name does not match with any major, minor or patch label. label=${label}" >&2
     exit 0
   fi
   PR_NUMBER=$(jq -r '.pull_request.number' < "${GITHUB_EVENT_PATH}")
@@ -116,11 +120,11 @@ else
 fi
 
 BUMP_LEVEL="${INPUT_DEFAULT_BUMP_LEVEL}"
-if echo "${LABELS}" | grep "bump:major" ; then
+if echo "${LABELS}" | grep -qE "$major_labels_regex" ; then
   BUMP_LEVEL="major"
-elif echo "${LABELS}" | grep "bump:minor" ; then
+elif echo "${LABELS}" | grep -qE "$minor_labels_regex" ; then
   BUMP_LEVEL="minor"
-elif echo "${LABELS}" | grep "bump:patch" ; then
+elif echo "${LABELS}" | grep -qE "$patch_labels_regex" ; then
   BUMP_LEVEL="patch"
 fi
 
@@ -140,8 +144,8 @@ if "$(git rev-parse --is-shallow-repository)"; then
   git fetch --prune --unshallow
 fi
 
-CURRENT_VERSION="$(${bump} current)" || true
-NEXT_VERSION="$(${bump} ${BUMP_LEVEL})" || true
+CURRENT_VERSION="$("${bump}" "current")" || true
+NEXT_VERSION="$("${bump}" "${BUMP_LEVEL}")" || true
 
 # Set next version tag in case existing tags not found.
 if [ -z "${NEXT_VERSION}" ] && [ -z "$(git tag)" ]; then
@@ -187,7 +191,7 @@ else
   git tag -a "${NEXT_VERSION}" -m "${TAG_MESSAGE}"
 
   if [ -n "${INPUT_GITHUB_TOKEN}" ]; then
-    bare_server_url=$(echo "${GITHUB_SERVER_URL}" | sed 's#^.\+://##')
+    bare_server_url="${GITHUB_SERVER_URL/#*:\/\//}"
     git -c "http.${GITHUB_SERVER_URL}/.extraheader=" \
       push "https://x-access-token:${INPUT_GITHUB_TOKEN}@${bare_server_url}/${GITHUB_REPOSITORY}.git" \
       "${NEXT_VERSION}"

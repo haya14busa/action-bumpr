@@ -9,9 +9,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: test
         uses: ./
         id: test
         with:
           dry_run: true
+  test_custom_label:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: test
+        uses: ./
+        id: test
+        with:
+          dry_run: true
+          major_labels: 'feat'
