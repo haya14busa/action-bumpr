@@ -48,17 +48,12 @@ jobs:
           fi
 
       # Create release.
-      - uses: actions/create-release@v1
+      - name: Release
+        uses: softprops/action-gh-release@v1
         if: steps.tag.outputs.value != ''
-        env:
-          # This token is provided by Actions, you do not need to create your own token
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ steps.tag.outputs.value }}
-          release_name: Release ${{ steps.tag.outputs.value }}
-          body: ${{ steps.bumpr.outputs.message }}
-          draft: false
-          prerelease: false
+          name: Release ${{ steps.tag.outputs.value }}
 
   release-check:
     if: github.event.action == 'labeled'
