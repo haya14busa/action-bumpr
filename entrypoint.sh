@@ -122,11 +122,11 @@ else
 fi
 
 BUMP_LEVEL="${INPUT_DEFAULT_BUMP_LEVEL}"
-if echo "${LABELS}" | grep "$major_labels_regex" ; then
+if echo "${LABELS}" | grep -qE "$major_labels_regex" ; then
   BUMP_LEVEL="major"
-elif echo "${LABELS}" | grep "$minor_labels_regex" ; then
+elif echo "${LABELS}" | grep -qE "$minor_labels_regex" ; then
   BUMP_LEVEL="minor"
-elif echo "${LABELS}" | grep "$patch_labels_regex" ; then
+elif echo "${LABELS}" | grep -qE "$patch_labels_regex" ; then
   BUMP_LEVEL="patch"
 fi
 
